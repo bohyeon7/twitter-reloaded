@@ -1,5 +1,8 @@
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import React, { useState } from "react";
 import styled from "styled-components"
+import { auth } from "../firebase";
+import { useNavigate } from "react-router-dom";
 
 const Wrapper = styled.div`
   height: 100%;
@@ -41,6 +44,7 @@ const Error = styled.span`
 `;
 
 export default function CreateAccount() {
+  const navigate = useNavigate();
   const [isLoading, setLoading] = useState(false);
   const [name, setName] = useState("");
   const [email, setEamil] = useState("");
@@ -58,25 +62,36 @@ export default function CreateAccount() {
     }
   };
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (isLoading || name === "" || email === "" || password === "") return;
     try {
+      setLoading(true);
+
       // create an account
+      const credentials = await createUserWithEmailAndPassword(auth, email, password);
+      console.log("credentials", credentials.user);
+
       // set user name
+      await updateProfile(credentials.user, {
+        displayName: name,
+      });
+
       // redirect
+      navigate("/");
     } catch (e) {
       // setError
     } finally {
       setLoading(false);
     }
 
-    console.log(name, email, password);
+    console.log("user info", name, email, password);
 
   }
 
   return (
     <Wrapper>
-      <Title>Log into 𝕏</Title>
+      <Title>Join 𝕏</Title>
       <Form onSubmit={onSubmit}>
         <Input
           onChange={onChange}
@@ -100,7 +115,7 @@ export default function CreateAccount() {
           type="password"
           required
         />
-        <Input type="submit" value="Create Account" />
+        <Input type="submit" value={isLoading ? "Loading..." : "Create Account"} />
       </Form>
       {error !== "" ? <Error>{error}</Error> : null}
     </Wrapper>
