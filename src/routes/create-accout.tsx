@@ -3,6 +3,11 @@ import React, { useState } from "react";
 import styled from "styled-components"
 import { auth } from "../firebase";
 import { useNavigate } from "react-router-dom";
+import { FirebaseError } from "firebase/app";
+
+// const errors = {
+//   "auth/email-already-in-use": "이미 존재하는 이메일입니다",
+// };
 
 const Wrapper = styled.div`
   height: 100%;
@@ -19,6 +24,7 @@ const Title = styled.h1`
 
 const Form = styled.form`
   margin-top: 50px;
+  margin-bottom: 10px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -64,6 +70,8 @@ export default function CreateAccount() {
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError(""); // error 초기화
+
     if (isLoading || name === "" || email === "" || password === "") return;
     try {
       setLoading(true);
@@ -81,12 +89,12 @@ export default function CreateAccount() {
       navigate("/");
     } catch (e) {
       // setError
+      if (e instanceof FirebaseError) {
+        setError(e.message);
+      }
     } finally {
       setLoading(false);
     }
-
-    console.log("user info", name, email, password);
-
   }
 
   return (
